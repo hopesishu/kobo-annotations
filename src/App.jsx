@@ -101,6 +101,9 @@ export default function App() {
       const rows = [];
       while (stmt.step()) {
         const r = stmt.getAsObject();
+        if (r.bookTitle == "Korean Stories For Language Learners") {
+          continue;
+        }
         rows.push({
           bookTitle: r.bookTitle,
           bookFormat: r.bookType === 6 ? "EPUB" : "PDF",
