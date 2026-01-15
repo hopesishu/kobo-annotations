@@ -20,25 +20,56 @@ export default function App() {
 
   const normalizeChapter = (contentID) => {
     if (!contentID) return "Highlights";
-    const file = contentID.split("/").pop().split("#")[0].replace(/\.(kepub\.epub|x?html?|pdf|epub)$/i, '');
-    const name = file.replace(/[_-]+/g, ' ').trim();
 
+    console.log("contentID", contentID);
+
+    // Extract filename from path (last part after "/")
+    const parts = contentID.split('/');
+    const file = parts[parts.length - 1];
+
+    // Remove anchors (#...) and extensions (.html, .xhtml, .htm, .pdf, .epub, .kepub.epub)
+    let name = file.split('#')[0].replace(/\.(kepub\.epub|x?html?|pdf|epub)$/i, '');
+
+    // Normalize separators: underscores/dashes to spaces
+    name = name.replace(/[_-]+/g, ' ').trim();
+
+    // Handle "Chapter_Twenty-one" or "Chapter-Twenty-one" style in ePub
+    const chapterMatch = contentID.match(/Chapter[_-]([A-Za-z-]+)/i);
+    if (chapterMatch) {
+      const words = chapterMatch[1]
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join('-');
+      return `Chapter ${words}`;
+    }
+
+    // Array of regex patterns to try in order
     const patterns = [
       { regex: /^part0*(\d+)/i, format: n => `Chapter ${n}` },
       { regex: /chapter0*(\d+)/i, format: n => `Chapter ${n}` },
+      { regex: /chapter\s*(\d+)/i, format: n => `Chapter ${n}` },
       { regex: /c\s*(\d+)/i, format: n => `Chapter ${n}` },
       { regex: /ch\s*(\d+)/i, format: n => `Chapter ${n}` },
+      { regex: /chap\s*(\d+)/i, format: n => `Chapter ${n}` },
+      { regex: /split\s*(\d+)/i, format: n => `Chapter ${n}` },
+      { regex: /(\d+)$/i, format: n => `Chapter ${n}` }, // fallback: digits at end
     ];
 
     for (const { regex, format } of patterns) {
       const match = name.match(regex);
-      if (match) return format(parseInt(match[1], 10));
+      if (match) return format(parseInt(match[1] || match[0], 10));
     }
 
+    // If no numbers found, just return words with first letter capitalized
     const words = name.match(/[A-Za-z]+/g);
-    if (words) return words.map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    if (words) {
+      return words
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
+    }
 
-    return "Highlights";
+    // Fallback
+    return name || "Highlights";
   };
 
   const handleFile = async (file) => {
