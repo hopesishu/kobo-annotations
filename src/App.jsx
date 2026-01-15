@@ -104,6 +104,9 @@ export default function App() {
         if (r.bookTitle == "Korean Stories For Language Learners") {
           continue;
         }
+        if (r.bookTitle.startsWith("Stolen Focus")) {
+          r.bookTitle = "Stolen Focus: Why You Can't Pay Attention — and How to Think Deeply Again";
+        }
         rows.push({
           bookTitle: r.bookTitle,
           bookFormat: r.bookType === 6 ? "EPUB" : "PDF",
