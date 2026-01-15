@@ -92,7 +92,8 @@ export default function App() {
 
   // Load default file on startup
   useEffect(() => {
-    fetch("/data/KoboReader.sqlite")
+    const basePath = import.meta.env.BASE_URL; 
+    fetch(`${basePath}data/KoboReader.sqlite`)
       .then(res => res.blob())
       .then(blob => handleFile(new File([blob], "KoboReader.sqlite")))
       .catch(err => setError("Failed to load default SQLite file."));
